@@ -1,0 +1,25 @@
+name: Deploy Category - Production
+
+on:
+  workflow_dispatch
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        tags: true
+
+
+    - name: Show file changes between releases
+      id: changed
+      run: |
+        echo "Workflow for category is in-progress"
