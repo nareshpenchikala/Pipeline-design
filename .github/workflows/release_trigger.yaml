@@ -50,6 +50,8 @@ jobs:
       run: |
         echo "Category page deploy triggered"
         gh workflow run category-workflow.yml --ref "${{ github.event.release.target_commitish }}"
+      env:
+        GH_TOKEN: ${{ github.token }}
     - name: Deploy app2 mfe
       if: steps.changed.outputs.app2_changed == 'true'
       run: |
