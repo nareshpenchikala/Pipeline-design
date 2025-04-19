@@ -23,16 +23,7 @@ jobs:
       id: get_tags
       run: |
         current_tag="${{ github.event.release.tag_name }}"
-        all_tags=($(git tag --sort=creatordate))
-        previous_tag=""
-        echo $all_tags
-
-        for i in "${!all_tags[@]}"; do
-          if [[ "${all_tags[$i]}" == "$current_tag" ]] && (( i > 0 )); then
-            previous_tag="${all_tags[$((i-1))]}"
-            break
-          fi
-        done
+        previous_tag=($(git tag --sort=creatordate | tail -n 2 | head -n 1))
 
         echo "Current tag: $current_tag"
         echo "Previous tag: $previous_tag"
