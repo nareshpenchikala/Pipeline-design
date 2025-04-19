@@ -49,6 +49,7 @@ jobs:
       if: steps.changed.outputs.category_changed == 'true'
       run: |
         echo "Category page deploy triggered"
+        gh workflow run category-workflow.yml --ref "${{ github.event.release.target_commitish }}"
     - name: Deploy app2 mfe
       if: steps.changed.outputs.app2_changed == 'true'
       run: |
