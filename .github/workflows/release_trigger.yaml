@@ -30,6 +30,7 @@ jobs:
         echo "Files changed between $previous_tag and $current_tag:"
         git diff --name-only $previous_tag $current_tag > changed_files.txt
         cat changed_files.txt
+        echo "apps/category-page-app/" >> changed_files.txt
         if grep -qE '^(apps/category-page-app/|turbo.json|yarn.lock|postcss.config.js|github/workflows/prod_deploy_category_page.yaml|packages/|deployments/charts/category-page-mfe/values_prod.yaml|deployments/configs_prod.*\.properties|deployments/conf.nginx)' changed_files.txt; then
            echo "category_changed=true"
         else
