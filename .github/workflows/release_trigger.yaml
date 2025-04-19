@@ -19,20 +19,21 @@ jobs:
       with:
         fetch-depth: 5
 
-    - name: Show release and source branch info
+    - name: Get previous tag
+      id: tags
       run: |
-        echo "Release Tag: ${{ github.event.release.tag_name }}"
-        echo "Source Branch: ${{ github.event.release.target_commitish }}"
+        current_tag="${{ github.event.release.tag_name }}"
+        previous_tag=$(git tag --sort=-creatordate | grep -B1 "^$current_tag$" | head -n1)
 
-    - name: Fetch source branch
-      run: |
-        git fetch origin ${{ github.event.release.target_commitish }}
+        echo "Current tag: $current_tag"
+        echo "Previous tag: $previous_tag"
 
-    - name: Compare release to source branch tip
-      id: diff
+        echo "previous_tag=$previous_tag" >> $GITHUB_OUTPUT
+
+    - name: Show file changes between releases
       run: |
-        echo "Changed files:"
-        git diff --name-only origin/${{ github.event.release.target_commitish }} ${{ github.event.release.tag_name }} > changed_files.txt
+        echo "Files changed between ${{ steps.tags.outputs.previous_tag }} and ${{ github.event.release.tag_name }}:"
+        git diff --name-only ${{ steps.tags.outputs.previous_tag }} ${{ github.event.release.tag_name }} > changed_files.txt
         cat changed_files.txt
 
     - name: Set up Docker Buildx
