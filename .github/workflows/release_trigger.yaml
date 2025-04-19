@@ -19,15 +19,15 @@ jobs:
       with:
         fetch-depth: 5
 
-    - name: Get previous tag
+    - name: Get previous tag (corrected)
       id: tags
       run: |
         current_tag="${{ github.event.release.tag_name }}"
-        previous_tag=$(git tag --sort=-creatordate | grep -B1 "^$current_tag$" | head -n1)
-
+        previous_tag=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' refs/tags | grep -v "^$current_tag$" | head -n 1)
+    
         echo "Current tag: $current_tag"
         echo "Previous tag: $previous_tag"
-
+    
         echo "previous_tag=$previous_tag" >> $GITHUB_OUTPUT
 
     - name: Show file changes between releases
