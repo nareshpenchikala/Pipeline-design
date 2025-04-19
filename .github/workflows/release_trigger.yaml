@@ -19,21 +19,29 @@ jobs:
       with:
         fetch-depth: 5
 
-    - name: Get previous tag (corrected)
-      id: tags
+    - name: Determine previous tag
+      id: get_tags
       run: |
         current_tag="${{ github.event.release.tag_name }}"
-        previous_tag=$(git for-each-ref --sort=-creatordate --format '%(refname:short)' refs/tags | grep -v "^$current_tag$" | head -n 1)
-    
+        all_tags=($(git tag --sort=creatordate))
+        previous_tag=""
+
+        for i in "${!all_tags[@]}"; do
+          if [[ "${all_tags[$i]}" == "$current_tag" ]] && (( i > 0 )); then
+            previous_tag="${all_tags[$((i-1))]}"
+            break
+          fi
+        done
+
         echo "Current tag: $current_tag"
         echo "Previous tag: $previous_tag"
-    
+
         echo "previous_tag=$previous_tag" >> $GITHUB_OUTPUT
 
     - name: Show file changes between releases
       run: |
         echo "Files changed between ${{ steps.tags.outputs.previous_tag }} and ${{ github.event.release.tag_name }}:"
-        git diff --name-only 0.5.0 -- ${{ github.event.release.tag_name }} > changed_files.txt
+        git diff --name-only ${{ steps.get_tags.outputs.previous_tag }} ${{ github.event.release.tag_name }} > changed_files.txt
         cat changed_files.txt
 
     - name: Set up Docker Buildx
