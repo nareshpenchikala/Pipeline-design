@@ -33,7 +33,7 @@ jobs:
     - name: Show file changes between releases
       run: |
         echo "Files changed between ${{ steps.tags.outputs.previous_tag }} and ${{ github.event.release.tag_name }}:"
-        git diff --name-only 0.4.0 ${{ github.event.release.tag_name }} > changed_files.txt
+        git diff --name-only 0.5.0 -- ${{ github.event.release.tag_name }} > changed_files.txt
         cat changed_files.txt
 
     - name: Set up Docker Buildx
