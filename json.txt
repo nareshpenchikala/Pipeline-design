@@ -1,1 +1,2 @@
 This is a Json replicate file test
+test modify of json txt file
