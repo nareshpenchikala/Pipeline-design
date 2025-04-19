@@ -22,6 +22,7 @@ jobs:
 
 
     - name: Show file changes between releases
+      id: changed
       run: |
         current_tag="${{ github.event.release.tag_name }}"
         previous_tag=$(git tag --sort=creatordate | tail -n 2 | head -n 1)
@@ -34,9 +35,9 @@ jobs:
         echo "----------------------------------"
         cat changed_files.txt
         if grep -qE '^(apps/category-page-app/|turbo.json|yarn.lock|postcss.config.js|github/workflows/prod_deploy_category_page.yaml|packages/|deployments/charts/category-page-mfe/values_prod.yaml|deployments/configs_prod.*\.properties|deployments/conf.nginx)' changed_files.txt; then
-           echo "category_changed=true"
+           echo "category_changed=true" >> $GITHUB_OUTPUT
         else
-           echo "category_changed=false"
+           echo "category_changed=false" >> $GITHUB_OUTPUT
         fi 
     - name: Deploy Category Page
       if: steps.changed.outputs.category_changed == 'true'
