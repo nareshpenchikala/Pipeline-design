@@ -4,11 +4,6 @@ on:
   release:
     types:
       - created
-    paths:
-      - "folder_2/internal_folder_2/**"
-      - "folder_1/**"
-      - "tailwindts.txt"
-      - "packagejason.txt"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -24,16 +19,20 @@ jobs:
       with:
         fetch-depth: 5
 
-    - name: get previous tag
-      id: last_tag
+    - name: Show release and source branch info
       run: |
-        echo "previous_tag=$(git describe --tags --abbrev=0 HEAD^)" >> $GITHUB_OUTPUT
+        echo "Release Tag: ${{ github.event.release.tag_name }}"
+        echo "Source Branch: ${{ github.event.release.target_commitish }}"
 
-    - name: set application name based on changes
-      id: set application
+    - name: Fetch source branch
       run: |
-        DIFF=$(git diff --name-only ${{ steps.last_tag.outputs.previous_tag }} HEAD) echo "$DIFF" > changed_files.txt
+        git fetch origin ${{ github.event.release.target_commitish }}
+
+    - name: Compare release to source branch tip
+      id: diff
+      run: |
         echo "Changed files:"
+        git diff --name-only origin/${{ github.event.release.target_commitish }} ${{ github.event.release.tag_name }} > changed_files.txt
         cat changed_files.txt
 
     - name: Set up Docker Buildx
