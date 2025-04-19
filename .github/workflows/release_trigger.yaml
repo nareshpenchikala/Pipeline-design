@@ -23,7 +23,9 @@ jobs:
       id: get_tags
       run: |
         current_tag="${{ github.event.release.tag_name }}"
-        previous_tag=($(git tag --sort=creatordate | tail -n 2 | head -n 1))
+        git tag --sort=creatordate | tail -n 2 | head -n 1
+        git tag --sort=creatordate | tail -n 3 | head -n 1
+        previous_tag=$(git tag --sort=creatordate | tail -n 2 | head -n 1)
 
         echo "Current tag: $current_tag"
         echo "Previous tag: $previous_tag"
