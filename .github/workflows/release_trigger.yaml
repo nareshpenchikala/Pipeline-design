@@ -20,26 +20,15 @@ jobs:
         fetch-depth: 0
         tags: true
 
-    - name: Determine previous tag
-      id: get_tags
-      run: |
-        current_tag="${{ github.event.release.tag_name }}"
-        git tag --sort=creatordate
-        echo "--------------------------------------------"
-        git tag --sort=creatordate | tail -n 2 | head -n 1
-        echo "--------------------------------------------"
-        git tag --sort=creatordate | tail -n 3 | head -n 1
-        previous_tag=$(git tag --sort=creatordate | tail -n 2 | head -n 1)
-
-        echo "Current tag: $current_tag"
-        echo "Previous tag: $previous_tag"
-
-        echo "previous_tag=$previous_tag" >> $GITHUB_OUTPUT
 
     - name: Show file changes between releases
       run: |
-        echo "Files changed between ${{ steps.tags.outputs.previous_tag }} and ${{ github.event.release.tag_name }}:"
-        git diff --name-only ${{ steps.get_tags.outputs.previous_tag }} ${{ github.event.release.tag_name }} > changed_files.txt
+        current_tag="${{ github.event.release.tag_name }}"
+        previous_tag=$(git tag --sort=creatordate | tail -n 2 | head -n 1)
+        echo "Current tag: $current_tag"
+        echo "Previous tag: $previous_tag"
+        echo "Files changed between $previous_tag and $current_tag:"
+        git diff --name-only $previous_tag $current_tag > changed_files.txt
         cat changed_files.txt
 
     - name: Set up Docker Buildx
