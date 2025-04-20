@@ -1,0 +1,61 @@
+name: Deploy rc yaml workflow - Production
+
+on:
+  release:
+    types:
+      - created
+permissions:
+  contents: read
+  actions: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+        tags: true
+
+
+    - name: Show file changes between releases
+      id: changed
+      run: |
+        current_tag="${{ github.event.release.tag_name }}"
+        previous_tag=$(git tag --sort=creatordate | tail -n 2 | head -n 1)
+        echo "Current tag: $current_tag"
+        echo "Previous tag: $previous_tag"
+        echo "Files changed between $previous_tag and $current_tag:"
+        git diff --name-only $previous_tag $current_tag > changed_files.txt
+        cat changed_files.txt
+        echo "apps/category-page-app/" >> changed_files.txt
+        echo "apps/app2/" >> changed_files.txt
+        echo "----------------------------------"
+        cat changed_files.txt
+        if grep -qE '^(apps/category-page-app/|turbo.json|yarn.lock|postcss.config.js|github/workflows/prod_deploy_category_page.yaml|packages/|deployments/charts/category-page-mfe/values_prod.yaml|deployments/configs_prod.*\.properties|deployments/conf.nginx)' changed_files.txt; then
+           echo "category_changed=true" >> $GITHUB_OUTPUT
+        else
+           echo "category_changed=false" >> $GITHUB_OUTPUT
+        fi
+        if grep -qE '^(apps/app2/|turbo.json|yarn.lock|postcss.config.js|github/workflows/prod_deploy_app2.yaml|packages/|deployments/charts/app2/values_prod.yaml|deployments/configs_prod.*\.properties|deployments/conf.nginx)' changed_files.txt; then
+           echo "app2_changed=true" >> $GITHUB_OUTPUT
+        else
+           echo "app2_changed=false" >> $GITHUB_OUTPUT
+        fi 
+    - name: Deploy category page mfe
+      if: steps.changed.outputs.category_changed == 'true'
+      run: |
+        echo "Category page deploy triggered"
+        gh workflow run category-workflow.yml --ref "${{ github.event.release.target_commitish }}"
+      env:
+        GH_TOKEN: ${{ github.token }}
+    - name: Deploy app2 mfe
+      if: steps.changed.outputs.app2_changed == 'true'
+      run: |
+        echo "App2 deploy triggered"
